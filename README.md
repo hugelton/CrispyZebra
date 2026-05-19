@@ -19,9 +19,11 @@ The interactive WebAssembly (WASM) implementation with a full GUI is available.
 ## Code Architecture
 The engine is structured within the `CrispyZebra` namespace:
 * `Oscillator`: The core Phase Distortion engine utilizing a custom Sine Look-Up Table (LUT) to warp phases dynamically.
+  
   <img width="299" height="105" alt="image" src="https://github.com/user-attachments/assets/6894ff94-8fbd-4a15-bfbd-75797126c206" />
 * `Envelope`: High-precision Q16 internal state envelope generator supporting up to 8 stages with rate/level configurations.
 * `LFO`: Low-frequency oscillator providing Triangle, Square, Saw Up, and Saw Down shapes for pitch modulation.
+  
   <img width="290" height="51" alt="image" src="https://github.com/user-attachments/assets/f00b5ee1-1dd4-4853-8ee0-7ad8314ad988" />
  
 * `Voice`: A polyphonic container that couples two parallel lines (Oscillators) with routing, detuning, and modulation options.
@@ -63,8 +65,7 @@ void onMidiEvent(uint8_t status, uint8_t note, uint8_t velocity) {
 * [**PicoCZ:**](https://github.com/kurogedelic/PicoCZ/) A hardware port of the CrispyZebra engine optimized for the RP2040 (Raspberry Pi Pico) microcontroller. 
 
 
-
-### License
+## License
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0) - see the LICENSE file for details.
 Copyright (C) 2026 Leo Kuroshita (@kurogedelic)
 
