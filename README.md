@@ -8,8 +8,6 @@ Optimized for embedded systems and WebAssembly (WASM) environments, it features 
 The interactive WebAssembly (WASM) implementation with a full GUI is available at:
 [https://kurogedelic.github.io/CrispyZebra/](https://kurogedelic.github.io/CrispyZebra/)
 
-## Disclaimer
-CrispyZebra is an independent open-source project developed by Leo Kuroshita. It is not affiliated with, endorsed by, or associated with CASIO Computer Co., Ltd. in any way. "CZ-101", "CZ-series", and "Phase Distortion" are referenced solely for historical and educational compatibility purposes.
 
 ## Features
 * **Authentic PD Synthesis:** Reproduces the Phase Distortion waveforms including Saw, Square, Pulse, Double Sine, Saw-Pulse, and Resonance windows (Saw, Triangle, Trapezoid).
@@ -59,10 +57,13 @@ void onMidiEvent(uint8_t status, uint8_t note, uint8_t velocity) {
 ```
 
 ## Related Projects
-* **PicoCZ:** A hardware port of the CrispyZebra engine optimized for the RP2040 (Raspberry Pi Pico) microcontroller. [Link to PicoCZ repository]
+* [**PicoCZ:**](https://github.com/kurogedelic/PicoCZ/) A hardware port of the CrispyZebra engine optimized for the RP2040 (Raspberry Pi Pico) microcontroller. 
 
-[**PicoCZ:**](https://github.com/kurogedelic/PicoCZ/)
+
 
 ### License
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0) - see the LICENSE file for details.
 Copyright (C) 2026 Leo Kuroshita (@kurogedelic)
+
+## Disclaimer
+CrispyZebra is an independent open-source project developed by Leo Kuroshita. It is not affiliated with, endorsed by, or associated with CASIO Computer Co., Ltd. in any way. "CZ-101", "CZ-series", and "Phase Distortion" are referenced solely for historical and educational compatibility purposes.
