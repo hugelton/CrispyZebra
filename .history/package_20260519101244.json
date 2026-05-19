@@ -1,0 +1,9 @@
+{
+  "name": "crispy-zebra",
+  "version": "1.0.0",
+  "description": "CZ-101 Phase Distortion Synthesizer Clone",
+  "scripts": {
+    "build": "cd wasm && make clean && make",
+    "dev": "cd wasm && python3 -m http.server 8000"
+  }
+}

@@ -1,0 +1,301 @@
+{
+  "format": "CrispyZebra",
+  "version": "1.0",
+  "bank": "Factory",
+  "category": "Strings",
+  "presetName": "Symphonic Ens. 1",
+  "global": {
+    "lineSelect": {
+      "mode": 3,
+      "octave": 0
+    },
+    "detuneNegative": false,
+    "detune": {
+      "fine": 10,
+      "note": 0,
+      "octave": 1
+    },
+    "vibratoWaveform": "TRIANGLE",
+    "vibratoDelay": 0,
+    "vibratoRate": 50,
+    "vibratoDepth": 4
+  },
+  "line1": {
+    "wave1": "REZ_SAW",
+    "wave2": "NONE",
+    "ringModulation": false,
+    "noiseModulation": false,
+    "dcaKeyFollow": 0,
+    "dcwKeyFollow": 0,
+    "dcaEndPoint": 4,
+    "dcaEG": [
+      {
+        "rate": 95,
+        "level": 57,
+        "sustain": false
+      },
+      {
+        "rate": 77,
+        "level": 96,
+        "sustain": false
+      },
+      {
+        "rate": 67,
+        "level": 89,
+        "sustain": true
+      },
+      {
+        "rate": 79,
+        "level": 64,
+        "sustain": false
+      },
+      {
+        "rate": 33,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      }
+    ],
+    "dcaSustainPoint": 2,
+    "dcwEndPoint": 4,
+    "dcwEG": [
+      {
+        "rate": 95,
+        "level": 99,
+        "sustain": false
+      },
+      {
+        "rate": 38,
+        "level": 16,
+        "sustain": false
+      },
+      {
+        "rate": 25,
+        "level": 51,
+        "sustain": true
+      },
+      {
+        "rate": 28,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      }
+    ],
+    "dcwSustainPoint": 2,
+    "dcoEndPoint": 1,
+    "dcoEG": [
+      {
+        "rate": 99,
+        "level": 33,
+        "sustain": false
+      },
+      {
+        "rate": 68,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      }
+    ],
+    "dcoSustainPoint": -1
+  },
+  "line2": {
+    "wave1": "REZ_SAW",
+    "wave2": "PULSE",
+    "dcaKeyFollow": 0,
+    "dcwKeyFollow": 0,
+    "dcaEndPoint": 4,
+    "dcaEG": [
+      {
+        "rate": 97,
+        "level": 71,
+        "sustain": false
+      },
+      {
+        "rate": 77,
+        "level": 96,
+        "sustain": false
+      },
+      {
+        "rate": 67,
+        "level": 87,
+        "sustain": true
+      },
+      {
+        "rate": 79,
+        "level": 64,
+        "sustain": false
+      },
+      {
+        "rate": 33,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      }
+    ],
+    "dcaSustainPoint": 2,
+    "dcwEndPoint": 4,
+    "dcwEG": [
+      {
+        "rate": 77,
+        "level": 99,
+        "sustain": false
+      },
+      {
+        "rate": 56,
+        "level": 40,
+        "sustain": false
+      },
+      {
+        "rate": 40,
+        "level": 59,
+        "sustain": true
+      },
+      {
+        "rate": 28,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 54,
+        "level": 0,
+        "sustain": false
+      }
+    ],
+    "dcwSustainPoint": 2,
+    "dcoEndPoint": 1,
+    "dcoEG": [
+      {
+        "rate": 99,
+        "level": 33,
+        "sustain": false
+      },
+      {
+        "rate": 68,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      },
+      {
+        "rate": 50,
+        "level": 0,
+        "sustain": false
+      }
+    ],
+    "dcoSustainPoint": -1
+  }
+}

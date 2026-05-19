@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <title>CrispyZebra</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="css/reset.css?v=23">
+    <link rel="stylesheet" href="css/styles.css?v=23">
+</head>
+
+<body>
+    <div id="app">
+        <header class="panel-header">
+            <div class="panel-logo" id="brand-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" data-name="レイヤー 1" viewBox="0 0 92.38 16.24">
+                    <path fill="#fff100"
+                        d="M6.59.5c2.27 0 4.4 1.04 5.62 3.29H10.1C9.19 2.74 8.14 2.1 6.72 2.1c-2.52 0-4.46 2.13-4.46 4.51 0 2.52 1.9 4.74 4.37 4.74 1.25 0 2.37-.49 3.34-1.59h2.16c-1.22 2.09-3.15 3.2-5.55 3.2-3.33 0-6.07-2.99-6.07-6.18C.5 3.16 3.36.5 6.59.5m0-.5C2.95 0 0 3.04 0 6.78s3.07 6.68 6.57 6.68c2.6 0 4.67-1.19 5.98-3.45.09-.15.09-.35 0-.5a.48.48 0 0 0-.43-.25H9.96a.48.48 0 0 0-.37.17c-.84.96-1.81 1.42-2.97 1.42-2.13 0-3.87-1.9-3.87-4.24 0-2.17 1.82-4.01 3.96-4.01 1.15 0 2.11.48 3 1.51.09.11.23.17.38.17h2.11a.495.495 0 0 0 .44-.73C11.42 1.29 9.21-.01 6.58-.01ZM17.57 3.5v1.74c-1.46.05-2.21.94-2.21 2.45v5.05h-1.69V3.75h1.57v.81h.03c.41-.6 1.1-.99 2.29-1.05m.01-.51h-.03c-.75.04-1.37.21-1.86.5a.52.52 0 0 0-.44-.26h-1.57c-.28 0-.5.22-.5.5v8.99c0 .28.22.5.5.5h1.69c.28 0 .5-.22.5-.5V7.68c0-1.27.56-1.91 1.72-1.95.27 0 .48-.23.48-.5V3.49c0-.14-.06-.27-.16-.36a.5.5 0 0 0-.34-.14ZM20.41.73v1.98h-1.69V.73zm0 3.02v8.99h-1.69V3.75zm0-3.52h-1.69c-.28 0-.5.22-.5.5v1.98c0 .28.22.5.5.5h1.69c.28 0 .5-.22.5-.5V.73c0-.28-.22-.5-.5-.5m0 3.02h-1.69c-.28 0-.5.22-.5.5v8.99c0 .28.22.5.5.5h1.69c.28 0 .5-.22.5-.5V3.75c0-.28-.22-.5-.5-.5M25.05 3.5c1.49 0 2.71 1.04 2.76 2.63h-1.69c-.08-.65-.45-1.09-1.15-1.09-.65 0-1.05.44-1.05.96 0 .76.78.99 1.67 1.27 1.27.39 2.43 1.15 2.43 2.82s-1.27 2.87-3.02 2.87c-1.62 0-3.18-1.1-3.18-3.18h1.69c.08 1.09.63 1.64 1.53 1.64.78 0 1.3-.5 1.3-1.23 0-.62-.47-1.02-1.53-1.36-2.21-.7-2.58-1.66-2.58-2.68 0-1.59 1.35-2.65 2.82-2.65m0-.5c-1.86 0-3.32 1.38-3.32 3.15 0 1.56.88 2.51 2.93 3.15 1.18.38 1.18.72 1.18.89 0 .46-.3.73-.8.73-.4 0-.95-.12-1.03-1.18a.5.5 0 0 0-.5-.46h-1.69c-.28 0-.5.22-.5.5 0 2.42 1.85 3.68 3.68 3.68 2.07 0 3.52-1.39 3.52-3.37 0-1.62-.94-2.73-2.79-3.3-1-.31-1.32-.46-1.32-.79 0-.27.22-.46.55-.46.27 0 .58.07.66.65.03.25.24.44.5.44h1.69q.21 0 .36-.15c.09-.1.14-.23.14-.36-.06-1.8-1.43-3.11-3.26-3.11ZM34.24 3.5c2.68 0 4.66 2.08 4.66 4.85 0 2.53-1.96 4.61-4.55 4.61-1.36 0-2.58-.55-3.17-1.53h-.03v4.3h-1.69V3.75H31v1.38h.03c.76-1.09 1.92-1.62 3.2-1.62m-.05 7.91c1.74 0 3.04-1.44 3.04-3.16s-1.3-3.21-3.1-3.21c-1.69 0-2.99 1.51-2.99 3.18s1.3 3.2 3.05 3.2M34.24 3c-1.04 0-1.98.32-2.73.91v-.16c0-.28-.22-.5-.5-.5h-1.54c-.28 0-.5.22-.5.5v12c0 .28.22.5.5.5h1.69c.28 0 .5-.22.5-.5v-3.08c.71.51 1.65.8 2.7.8 2.83 0 5.05-2.24 5.05-5.11 0-3.05-2.22-5.35-5.16-5.35Zm-.06 7.92c-1.43 0-2.55-1.18-2.55-2.7s1.14-2.68 2.49-2.68c1.56 0 2.6 1.4 2.6 2.71 0 1.49-1.11 2.66-2.54 2.66Z" />
+                    <path fill="#fff100"
+                        d="m47.49 3.75-4.97 12h-1.75l1.32-3.18-3.59-8.81h1.82l2.65 6.98 2.71-6.98h1.82m-.01-.51h-1.82c-.21 0-.39.13-.47.32l-2.24 5.76-2.18-5.76a.5.5 0 0 0-.47-.32h-1.82c-.17 0-.32.08-.41.22a.52.52 0 0 0-.05.47l3.51 8.62-1.24 2.99c-.06.15-.05.33.05.47.09.14.25.22.42.22h1.75c.2 0 .38-.12.46-.31l4.97-12c.06-.15.05-.33-.05-.47a.5.5 0 0 0-.42-.22Zm0 1" />
+                    <path fill="#fff100"
+                        d="M56.82.73v1.61l-7.1 8.8h7.31v1.61h-9.3v-1.61l7.13-8.8h-6.85V.73h8.82m-.01-.5H48c-.28 0-.5.22-.5.5v1.61c0 .28.22.5.5.5h5.8l-6.47 7.98a.5.5 0 0 0-.11.31v1.61c0 .28.22.5.5.5h9.3c.28 0 .5-.22.5-.5v-1.61c0-.28-.22-.5-.5-.5h-6.26l6.44-7.98c.07-.09.11-.2.11-.31V.73c0-.28-.22-.5-.5-.5Z" />
+                    <path fill="#fff100"
+                        d="M61.73 3.5c2.65 0 4.66 2.05 4.66 4.63 0 .28 0 .54-.05.84h-7.45c.39 1.49 1.57 2.45 2.95 2.45 1.05 0 2.05-.55 2.56-1.51h1.69c-.7 1.85-2.39 3.05-4.32 3.05-2.53 0-4.58-2.24-4.58-4.64 0-2.84 2.14-4.82 4.53-4.82m-2.83 4.17h5.81c-.13-1.53-1.48-2.63-2.92-2.63s-2.76 1.09-2.89 2.63M61.73 3c-2.82 0-5.03 2.34-5.03 5.32 0 2.74 2.37 5.14 5.08 5.14 2.12 0 3.99-1.31 4.77-3.33a.505.505 0 0 0-.21-.66c.25 0 .46-.18.49-.42.05-.35.05-.64.05-.92 0-2.87-2.27-5.13-5.16-5.13ZM59.5 7.17c.35-1.02 1.37-1.63 2.28-1.63 1.06 0 1.99.68 2.31 1.63zm.11 2.3h4.57c-.08.05-.16.11-.2.2-.42.77-1.23 1.25-2.13 1.25-.96 0-1.79-.55-2.24-1.45M69.16.73V5h.03c.73-.99 1.87-1.49 3.08-1.49 2.55 0 4.66 2.14 4.66 4.74s-1.98 4.72-4.51 4.72c-1.3 0-2.5-.52-3.25-1.53h-.03v1.3h-1.67V.73zm3.02 10.69c1.66 0 3.07-1.43 3.07-3.18s-1.35-3.2-3.08-3.2-3.05 1.46-3.05 3.17 1.35 3.21 3.07 3.21M69.16.23h-1.69c-.28 0-.5.22-.5.5v12.01c0 .28.22.5.5.5h1.67c.28 0 .5-.22.5-.5v-.14c.76.56 1.73.87 2.78.87 2.76 0 5.01-2.34 5.01-5.22s-2.31-5.24-5.16-5.24c-.98 0-1.89.29-2.62.83V.73c0-.28-.22-.5-.5-.5Zm3.02 10.69c-1.44 0-2.57-1.19-2.57-2.71s1.17-2.67 2.55-2.67 2.58 1.21 2.58 2.7-1.18 2.68-2.57 2.68ZM82.17 3.5v1.74c-1.46.05-2.21.94-2.21 2.45v5.05h-1.69V3.75h1.57v.81h.03c.41-.6 1.1-.99 2.29-1.05m.01-.51h-.03c-.75.04-1.37.21-1.86.5a.52.52 0 0 0-.44-.26h-1.57c-.28 0-.5.22-.5.5v8.99c0 .28.22.5.5.5h1.69c.28 0 .5-.22.5-.5V7.68c0-1.27.56-1.91 1.72-1.95.27 0 .48-.23.48-.5V3.49c0-.14-.06-.27-.16-.36a.5.5 0 0 0-.34-.14Z" />
+                    <path fill="#fff100"
+                        d="M87.05 3.5c1.32 0 2.42.49 3.12 1.51h.03V3.74h1.69v8.99H90.2v-1.4h-.03c-.63 1.07-1.77 1.62-3.05 1.62-2.63 0-4.77-1.98-4.77-4.58 0-2.87 2.06-4.89 4.71-4.89m.03 7.94c1.75 0 3.13-1.46 3.13-3.16s-1.27-3.21-3.13-3.21c-1.69 0-3.07 1.44-3.07 3.21s1.38 3.16 3.07 3.16M87.05 3c-2.97 0-5.21 2.32-5.21 5.39 0 2.85 2.32 5.08 5.27 5.08 1 0 1.89-.3 2.58-.84v.11c0 .28.22.5.5.5h1.69c.28 0 .5-.22.5-.5V3.75c0-.28-.22-.5-.5-.5h-1.69c-.28 0-.5.22-.5.5v.06c-.71-.53-1.61-.8-2.65-.8Zm.04 7.92c-1.39 0-2.57-1.22-2.57-2.66s1.15-2.71 2.57-2.71c1.5 0 2.63 1.17 2.63 2.71s-1.18 2.66-2.63 2.66" />
+                </svg>
+
+
+
+            </div>
+
+            <div class="header-control">
+                <div class="header-global">
+
+
+                    <div class="header-global-section">
+                        <div class="header-global-section-header">PORTAMENT</div>
+                        <div class="header-global-section-contents">
+                            <div class="btn-container ui-switch">
+                                <div class="lamp"></div>
+                                <div class="btn-socket">
+                                    <button type="button" class="synth-btn" id="master-portamento-toggle"></button>
+                                </div>
+                                <div class="label">ON/OFF</div>
+                            </div>
+
+                            <div class="simple-fader is-half">
+                                <div class="fader-container is-half">
+                                    <div class="fader-layout">
+                                        <div class="fader-well">
+                                            <div class="fader-slot"></div>
+                                            <div class="fader-knob" id="master-portamento-time"
+                                                data-control-id="master-portamento-time" data-control-value="0"
+                                                data-control-kind="standalone" data-control-min="0"
+                                                data-control-max="99"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simple-fader-label">TIME</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-global-section">
+                        <div class="header-global-section-header">PITCH BEND</div>
+                        <div class="header-global-section-contents">
+                            <div class="simple-fader is-half">
+                                <div class="fader-container is-half">
+                                    <div class="fader-layout">
+                                        <div class="fader-well">
+                                            <div class="fader-slot"></div>
+                                            <div class="fader-knob" id="master-pitch-bend-up"
+                                                data-control-id="master-pitch-bend-up" data-control-value="2"
+                                                data-control-kind="standalone" data-control-min="0"
+                                                data-control-max="24"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simple-fader-label">UP</div>
+                            </div>
+
+                            <div class="simple-fader is-half">
+                                <div class="fader-container is-half">
+                                    <div class="fader-layout">
+                                        <div class="fader-well">
+                                            <div class="fader-slot"></div>
+                                            <div class="fader-knob" id="master-pitch-bend-down"
+                                                data-control-id="master-pitch-bend-down" data-control-value="2"
+                                                data-control-kind="standalone" data-control-min="0"
+                                                data-control-max="24"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simple-fader-label">DOWN</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+                <div class="header-preset-nav">
+                    <div class="lcd-viewer" id="preset-lcd" role="button" tabindex="0" aria-haspopup="menu"
+                        aria-expanded="false">
+                        <div class="lcd-line-container">
+                            <div class="lcd-text lcd-line-bg">████████████████████</div>
+                            <div class="lcd-text lcd-line-fg" id="lcd-line1">CRISPYZEBRA </div>
+                        </div>
+                        <div class="lcd-line-container">
+                            <div class="lcd-text lcd-line-bg">████████████████████</div>
+                            <div class="lcd-text lcd-line-fg" id="lcd-line2">ready </div>
+                        </div>
+                    </div>
+             
+                    <div class="header-preset-nav-tools">
+
+       <div class="btn-container ui-switch">
+                        <div class="btn-socket">
+                            <button type="button" class="synth-btn is-black preset-prev">◁</button>
+                        </div>
+                        <div class="label">PREV</div>
+                        <div class="btn-socket">
+                            <button type="button" class="synth-btn is-black preset-next">▷</button>
+                        </div>
+                        <div class="label">NEXT</div>
+                    </div>
+
+
+                        <div class="btn-container ui-switch">
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn preset-save"></button>
+                            </div>
+                            <div class="label">SAVE</div>
+
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn preset-load"></button>
+                            </div>
+                            <div class="label">LOAD</div>
+                        </div>
+
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn midi-btn"></button>
+                            </div>
+                            <div class="label">MIDI</div>
+                        </div>
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn appearance-btn" id="appearance-toggle"></button>
+                            </div>
+                            <div class="label">DARK</div>
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </header>
+
+        <div class="panel-body">
+            <div class="panel-section top-section">
+                <div class="panel-cell" data-panel="routing">
+                    <h3 class="panel-cell-header">ROUTING</h3>
+
+                    <div class="top-panel-subsection">
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn routing-line-btn" data-line-index="0"></button>
+                            </div>
+                            <div class="label">LINE 1</div>
+                        </div>
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn routing-line-btn" data-line-index="1"></button>
+                            </div>
+                            <div class="label">LINE 2</div>
+                        </div>
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn routing-line-btn" data-line-index="2"></button>
+                            </div>
+                            <div class="label">LINE 1+2</div>
+                        </div>
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn routing-line-btn" data-line-index="3"></button>
+                            </div>
+                            <div class="label">LINE 1+2'</div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="panel-cell" data-panel="modulation">
+                    <h3 class="panel-cell-header">MOD.</h3>
+                    <div class="top-panel-subsection">
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn is-black routing-mod-btn"
+                                    data-mod-type="ring"></button>
+                            </div>
+                            <div class="label">RING</div>
+                        </div>
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn is-black routing-mod-btn"
+                                    data-mod-type="noise"></button>
+                            </div>
+                            <div class="label">NOISE</div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+
+                <div class="panel-cell" data-panel="detune">
+                    <h3 class="panel-cell-header">DETUNE</h3>
+                    <div class="top-panel-subsection">
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn routing-detune-down-btn">▼</button>
+                            </div>
+                            <div class="label">DOWN</div>
+                        </div>
+                        <div class="btn-container ui-switch">
+                            <div class="lamp"></div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn routing-detune-up-btn">▲</button>
+                            </div>
+                            <div class="label">UP</div>
+                        </div>
+                        <div class="simple-fader is-half">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="detune-octave" data-control-id="detune-octave"
+                                            data-control-value="0" data-control-kind="detune" data-control-min="0"
+                                            data-control-max="3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">OCT</div>
+                        </div>
+                        <div class="simple-fader is-half">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="detune-note" data-control-id="detune-note"
+                                            data-control-value="0" data-control-kind="detune" data-control-min="0"
+                                            data-control-max="11"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">NOTE</div>
+                        </div>
+                        <div class="simple-fader is-half">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="detune-fine" data-control-id="detune-fine"
+                                            data-control-value="0" data-control-kind="detune" data-control-min="0"
+                                            data-control-max="60"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">FINE</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-cell" data-panel="vibrato">
+                    <h3 class="panel-cell-header">VIBRATO</h3>
+                    <div class="top-panel-subsection">
+                        <div class="vibrato-wave-block">
+                            <div class="vibrato-waveforms">
+                                <button type="button" class="waveform-window" id="vibrato-waveform"
+                                    data-eg-prefix="vibrato" data-wave-slot="0" data-wave-index="0">
+                                    <span class="wave-number">1</span>
+                                    <svg class="wave-svg" viewBox="0 0 100 100" aria-hidden="true">
+                                        <path class="wave-path"
+                                            d="M 88,50.31 L 69.04,80.31 L 50.07,50.31 L 31.11,20.31 L 12,50.31" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="vibrato-wave-label">WAVE</div>
+                        </div>
+                        <div class="top-sub-faders">
+                            <div class="simple-fader is-half">
+                                <div class="fader-container is-half">
+                                    <div class="fader-layout">
+                                        <div class="fader-well">
+                                            <div class="fader-slot"></div>
+                                            <div class="fader-knob" id="vibrato-delay" data-control-id="vibrato-delay"
+                                                data-control-value="0" data-control-kind="standalone"
+                                                data-control-min="0" data-control-max="99"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simple-fader-label">DELAY</div>
+                            </div>
+                            <div class="simple-fader is-half">
+                                <div class="fader-container is-half">
+                                    <div class="fader-layout">
+                                        <div class="fader-well">
+                                            <div class="fader-slot"></div>
+                                            <div class="fader-knob" id="vibrato-rate" data-control-id="vibrato-rate"
+                                                data-control-value="0" data-control-kind="standalone"
+                                                data-control-min="0" data-control-max="99"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simple-fader-label">RATE</div>
+                            </div>
+                            <div class="simple-fader is-half">
+                                <div class="fader-container is-half">
+                                    <div class="fader-layout">
+                                        <div class="fader-well">
+                                            <div class="fader-slot"></div>
+                                            <div class="fader-knob" id="vibrato-depth" data-control-id="vibrato-depth"
+                                                data-control-value="0" data-control-kind="standalone"
+                                                data-control-min="0" data-control-max="99"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simple-fader-label">DEPTH</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-cell" data-panel="master">
+                    <h3 class="panel-cell-header">MASTER</h3>
+                    <div class="master-panel">
+
+                        <div class="simple-fader is-half">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="master-octave" data-control-id="master-octave"
+                                            data-control-value="0" data-control-kind="standalone" data-control-min="0"
+                                            data-control-max="2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">OCTAVE</div>
+                        </div>
+
+                        <div class="simple-fader is-half">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="master-note-semitone"
+                                            data-control-id="master-note-semitone" data-control-value="0"
+                                            data-control-kind="standalone" data-control-min="0" data-control-max="11">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">NOTE</div>
+                        </div>
+                        <div class="simple-fader is-half">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="master-fine-tune" data-control-id="master-fine-tune"
+                                            data-control-value="0" data-control-kind="standalone" data-control-min="0"
+                                            data-control-max="60"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">FINE</div>
+                        </div>
+
+                        <div class="simple-fader is-half is-red">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="master-pan" data-control-id="master-pan"
+                                            data-control-value="0" data-control-kind="standalone" data-control-min="0"
+                                            data-control-max="99"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">PAN</div>
+                        </div>
+                        <div class="simple-fader is-half is-red">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="master-drive" data-control-id="master-drive"
+                                            data-control-value="0" data-control-kind="standalone" data-control-min="0"
+                                            data-control-max="99"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">DRIVE</div>
+                        </div>
+
+                        <div class="simple-fader is-half">
+                            <div class="fader-container is-half">
+                                <div class="fader-layout">
+                                    <div class="fader-well">
+                                        <div class="fader-slot"></div>
+                                        <div class="fader-knob" id="master-volume" data-control-id="master-volume"
+                                            data-control-value="0" data-control-kind="standalone" data-control-min="0"
+                                            data-control-max="99"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="simple-fader-label">VOL.</div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div class="panel-section bottom-section">
+                <div class="panel-cell">
+                    <h3 class="panel-cell-header">DCO1</h3>
+                    <div class="panel-horizontal-bank" data-horizontal-bank data-eg-prefix="dco1"></div>
+                    <div class="panel-fader-bank" data-fader-bank data-eg-prefix="dco1">
+
+
+                    </div>
+                </div>
+                <div class="panel-cell">
+                    <h3 class="panel-cell-header">DCW1</h3>
+                    <div class="panel-horizontal-bank" data-horizontal-bank data-eg-prefix="dcw1"></div>
+                    <div class="panel-fader-bank" data-fader-bank data-eg-prefix="dcw1"></div>
+                </div>
+                <div class="panel-cell">
+                    <h3 class="panel-cell-header">DCA1</h3>
+                    <div class="panel-horizontal-bank" data-horizontal-bank data-eg-prefix="dca1"></div>
+                    <div class="panel-fader-bank" data-fader-bank data-eg-prefix="dca1"></div>
+                </div>
+                <div class="panel-cell">
+                    <h3 class="panel-cell-header">DCO2</h3>
+                    <div class="panel-horizontal-bank" data-horizontal-bank data-eg-prefix="dco2"></div>
+                    <div class="panel-fader-bank" data-fader-bank data-eg-prefix="dco2"></div>
+                </div>
+                <div class="panel-cell">
+                    <h3 class="panel-cell-header">DCW2</h3>
+                    <div class="panel-horizontal-bank" data-horizontal-bank data-eg-prefix="dcw2"></div>
+                    <div class="panel-fader-bank" data-fader-bank data-eg-prefix="dcw2"></div>
+                </div>
+                <div class="panel-cell">
+                    <h3 class="panel-cell-header">DCA2</h3>
+                    <div class="panel-horizontal-bank" data-horizontal-bank data-eg-prefix="dca2"></div>
+                    <div class="panel-fader-bank" data-fader-bank data-eg-prefix="dca2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="value-popover" id="valuePopover" role="status" aria-live="polite"></div>
+    <div class="waveform-catalog" id="waveformCatalog"></div>
+    <div class="preset-menu" id="presetMenu"></div>
+    <div class="modal-backdrop" id="aboutModal" aria-hidden="true">
+        <div class="Modal-content" role="dialog" aria-modal="true" aria-label="About CrispyZebra">
+            <button type="button" class="modal-close" aria-label="Close">×</button>
+            <div class="about-modal-content">
+                <div class="about-modal-name">CrispyZebra (web)</div>
+                <div class="about-modal-version">v1.0</div>
+                <div class="about-modal-credit">
+                    Design &amp; Implementation: <strong>Leo Kuroshita</strong>
+                </div>
+                <div class="about-modal-copy">© 2026 Hügelton Instruments, Kōbe, Japan.</div>
+                <a class="about-modal-link" href="https://hugelton.com/" target="_blank" rel="noopener noreferrer">
+                    https://hugelton.com/
+                </a>
+                <div class="about-modal-ack">
+                    <a class="about-modal-link" href="https://github.com/kurogedelic/CrispyZebra" target="_blank"
+                        rel="noopener noreferrer">
+                        GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="overlay" id="start-overlay">
+        <p>Click to Start</p>
+
+    </div>
+
+    <script src="gui.js?v=23" defer></script>
+</body>
+
+</html>
