@@ -33,7 +33,7 @@ const vibratoState = {
 };
 const PRESET_COUNT = 100;
 const PRESET_PATH = 'presets/';
-const WASM_ASSET_VERSION = '23';
+const WASM_ASSET_VERSION = '24';
 const PRESET_ASSET_VERSION = Date.now();
 let currentPresetIndex = 0;
 let currentPresetKind = 'factory';
@@ -85,6 +85,8 @@ let midiAccess = null;
 let midiConnected = false;
 let midiModWheel = 1;
 const midiHeldNotes = new Set();
+let presetEngineResetRequest = 0;
+const pendingPresetEngineResets = new Map();
 
 // ─── AudioWorklet Init ───
 async function initAudio() {
@@ -132,7 +134,21 @@ async function initAudio() {
         const d = e.data;
         console.log('[Worklet msg]', d);
         if (d.type === 'ready') { if (_resolve) _resolve(); }
+        else if (d.type === 'error' && d.requestId) {
+            const pending = pendingPresetEngineResets.get(d.requestId);
+            if (pending) {
+                pendingPresetEngineResets.delete(d.requestId);
+                pending.resolve();
+            }
+        }
         else if (d.type === 'error') { if (_reject) _reject(new Error(d.msg)); }
+        else if (d.type === 'resetReady') {
+            const pending = pendingPresetEngineResets.get(d.requestId);
+            if (pending) {
+                pendingPresetEngineResets.delete(d.requestId);
+                pending.resolve();
+            }
+        }
     };
 
     // setStatus('Loading WASM...');
@@ -178,6 +194,36 @@ function setStatus(msg) {
 
 function sendWorkletSet(f, ...a) {
     if (workletNode) workletNode.port.postMessage({ type: 'set', f, a });
+}
+
+function resetPresetVoicesAndSync() {
+    activeNotes.clear();
+    kbNotes.clear();
+    midiHeldNotes.clear();
+
+    if (!workletNode) {
+        fullSync();
+        return Promise.resolve();
+    }
+
+    const requestId = ++presetEngineResetRequest;
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => {
+            pendingPresetEngineResets.delete(requestId);
+            resolve();
+        }, 1000);
+
+        pendingPresetEngineResets.set(requestId, {
+            resolve: () => {
+                clearTimeout(timer);
+                resolve();
+            }
+        });
+
+        workletNode.port.postMessage({ type: 'reset', requestId });
+    }).then(() => {
+        if (requestId === presetEngineResetRequest) fullSync();
+    });
 }
 
 function getEffectiveVibratoDepth() {
@@ -1216,7 +1262,7 @@ function loadUserPreset(id) {
     if (index < 0) return;
     const item = userPresets[index];
     applyPreset(item.preset, `U${String(index + 1).padStart(2, '0')}`, 'user', id);
-    fullSync();
+    resetPresetVoicesAndSync();
 }
 
 function readPresetFile(file) {
@@ -1272,7 +1318,7 @@ function loadPreset(index) {
                 presetName: preset.presetName || padded
             });
             applyPreset(preset, index);
-            fullSync();
+            resetPresetVoicesAndSync();
         })
         .catch(err => {
             console.error('[loadPreset] error:', err);

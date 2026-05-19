@@ -21,8 +21,8 @@
     "vibratoDepth": 0
   },
   "line1": {
-    "wave1": "SAW",
-    "wave2": "SAW",
+    "wave1": "PULSE",
+    "wave2": "NONE",
     "ringModulation": false,
     "noiseModulation": false,
     "dcaKeyFollow": 4,
@@ -76,42 +76,90 @@
       {
         "rate": 99,
         "level": 80,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 127,
+          "level": 97,
+          "rateValue": 127,
+          "levelValue": 97
+        }
       },
       {
         "rate": 20,
         "level": 43,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 158,
+          "level": 56,
+          "rateValue": 30,
+          "levelValue": 56
+        }
       },
       {
         "rate": 40,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 180,
+          "level": 0,
+          "rateValue": 52,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       }
     ],
     "dcwSustainPoint": -1,
@@ -161,7 +209,7 @@
     "dcoSustainPoint": -1
   },
   "line2": {
-    "wave1": "SAW",
+    "wave1": "SAW_PULSE",
     "wave2": "NONE",
     "dcaKeyFollow": 4,
     "dcwKeyFollow": 9,
@@ -214,42 +262,90 @@
       {
         "rate": 99,
         "level": 84,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 127,
+          "level": 102,
+          "rateValue": 127,
+          "levelValue": 102
+        }
       },
       {
         "rate": 19,
         "level": 43,
-        "sustain": true
+        "sustain": true,
+        "raw": {
+          "rate": 157,
+          "level": 184,
+          "rateValue": 29,
+          "levelValue": 56
+        }
       },
       {
         "rate": 40,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 180,
+          "level": 0,
+          "rateValue": 52,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       },
       {
         "rate": 54,
         "level": 0,
-        "sustain": false
+        "sustain": false,
+        "raw": {
+          "rate": 68,
+          "level": 0,
+          "rateValue": 68,
+          "levelValue": 0
+        }
       }
     ],
     "dcwSustainPoint": 1,

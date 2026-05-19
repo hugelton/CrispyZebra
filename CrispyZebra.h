@@ -90,6 +90,7 @@ public:
 
     void keyOn() {
         current_stage = 0;
+        current_level = 0;
         is_key_on = true;
     }
 
@@ -221,7 +222,12 @@ public:
     Envelope dcw_eg;  
     Envelope dca_eg;  
 
+    static inline uint16_t scaleDcw(uint16_t value, uint16_t max_value) {
+        return static_cast<uint16_t>((static_cast<uint32_t>(value) * max_value) >> 16);
+    }
+
     void resetForNoteOn() {
+        phase = 0;
         eg_divider = 31;  
         cached_dco = 0;
         cached_dcw = 0;
@@ -241,7 +247,8 @@ public:
         phase += phase_inc;
         if (phase < previous_phase) wave_cycle_toggle = !wave_cycle_toggle;
 
-        uint16_t dcw = cached_dcw;
+        uint16_t dcw = scaleDcw(cached_dcw, 56000);
+        uint16_t rez_dcw = scaleDcw(dcw, 44000);
         uint16_t dca = cached_dca;
 
         uint16_t phase_16 = phase >> 16;
@@ -337,27 +344,27 @@ public:
             }
             case Waveform::REZ_SAW: {
                 uint32_t res_phase_32 = static_cast<uint32_t>(local_phase)
-                    + ((static_cast<uint64_t>(local_phase) * dcw * 15) >> 16);
+                    + ((static_cast<uint64_t>(local_phase) * rez_dcw * 7) >> 16);
                 uint16_t res_phase = static_cast<uint16_t>(res_phase_32 & 0xFFFF);
-                int32_t core_bipolar = static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]);
+                int32_t core_bipolar = (static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]) * 5) >> 3;
                 uint32_t window = 65535 - local_phase;
                 raw_sample = ((core_bipolar * static_cast<int32_t>(window)) >> 16) + 32768;
                 break;
             }
             case Waveform::REZ_TRI: {
                 uint32_t res_phase_32 = static_cast<uint32_t>(local_phase)
-                    + ((static_cast<uint64_t>(local_phase) * dcw * 15) >> 16);
+                    + ((static_cast<uint64_t>(local_phase) * rez_dcw * 7) >> 16);
                 uint16_t res_phase = static_cast<uint16_t>(res_phase_32 & 0xFFFF);
-                int32_t core_bipolar = static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]);
+                int32_t core_bipolar = (static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]) * 5) >> 3;
                 uint32_t window = (local_phase < 32768) ? (local_phase << 1) : ((65535 - local_phase) << 1);
                 raw_sample = ((core_bipolar * static_cast<int32_t>(window)) >> 16) + 32768;
                 break;
             }
             case Waveform::REZ_TRAP: {
                 uint32_t res_phase_32 = static_cast<uint32_t>(local_phase)
-                    + ((static_cast<uint64_t>(local_phase) * dcw * 15) >> 16);
+                    + ((static_cast<uint64_t>(local_phase) * rez_dcw * 7) >> 16);
                 uint16_t res_phase = static_cast<uint16_t>(res_phase_32 & 0xFFFF);
-                int32_t core_bipolar = static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]);
+                int32_t core_bipolar = (static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]) * 5) >> 3;
                 uint32_t window;
                 if (local_phase < 16384) window = local_phase << 2;
                 else if (local_phase > 49152) window = (65535 - local_phase) << 2;
@@ -423,6 +430,7 @@ public:
     void noteOn(uint8_t note, uint32_t p_inc, bool portamento_enabled = false, uint32_t previous_line1_phase_inc = 0) {
         current_note = note;
         is_active = true;
+        samples_since_note_off = 0;
         target_line1_base_phase_inc = p_inc;
         target_line2_base_phase_inc = static_cast<uint32_t>(p_inc * getDetuneFactor());
 
@@ -444,6 +452,14 @@ public:
         samples_since_note_off = 0;  
     }
 
+    bool isKeyHeld() const {
+        return line1.dca_eg.is_key_on || line2.dca_eg.is_key_on;
+    }
+
+    uint32_t getReleaseLevel() const {
+        return (line1.dca_eg.current_level >> 16) + (line2.dca_eg.current_level >> 16);
+    }
+
     inline bool shouldRelease() {
         if (!is_active) return false;
         if (!line1.dca_eg.is_key_on && !line2.dca_eg.is_key_on) {
@@ -458,7 +474,7 @@ public:
         return false;
     }
 
-    inline int32_t process(const Tables& tables, bool ring_modulation = false) {
+    inline int32_t process(const Tables& tables, LineSelectMode mode = LineSelectMode::LINE1_2, bool ring_modulation = false) {
         if (!is_active) return 0;
         int32_t s1 = line1.nextSample(tables);
         int32_t s2 = line2.nextSample(tables);
@@ -473,8 +489,18 @@ public:
         if (ring_modulation) {
             int32_t ring = (s1 * s2) >> 16;
             return ring;
-        } else {
-            return (s1 + s2) >> 1;
+        }
+
+        switch (mode) {
+            case LineSelectMode::LINE1_ONLY:
+                return s1;
+            case LineSelectMode::LINE2_ONLY:
+                return s2;
+            case LineSelectMode::LINE1_2_INV:
+                return (s1 - s2) >> 1;
+            case LineSelectMode::LINE1_2:
+            default:
+                return (s1 + s2) >> 1;
         }
     }
 };
@@ -542,7 +568,7 @@ public:
     uint32_t convertCzRateToInternal(uint8_t cz_rate, int eg_type) const {
         static const uint8_t rate_points[5] = {0, 25, 50, 75, 99};
         static const double dco_seconds[5] = {235.0, 14.0, 0.921, 0.054, 0.004};
-        static const double dca_dcw_seconds[5] = {104.0, 7.0, 0.544, 0.038, 0.004};
+        static const double dca_dcw_seconds[5] = {104.0, 4.5, 0.22, 0.016, 0.003};
 
         const double* seconds_points = (eg_type == 0) ? dco_seconds : dca_dcw_seconds;
         int segment = 3;
@@ -556,6 +582,7 @@ public:
         double r0 = static_cast<double>(rate_points[segment]);
         double r1 = static_cast<double>(rate_points[segment + 1]);
         double t = (static_cast<double>(cz_rate) - r0) / (r1 - r0);
+        if (eg_type != 0) t = __builtin_pow(t, 0.62);
         double log_seconds = __builtin_log(seconds_points[segment])
             + t * (__builtin_log(seconds_points[segment + 1]) - __builtin_log(seconds_points[segment]));
         double seconds = __builtin_exp(log_seconds);
@@ -717,74 +744,84 @@ void setEgRate(int line, int eg_type, int stage, uint8_t value) {
     }
 
     void midiNoteOn(uint8_t note) {
-        bool any_active = false;
+        bool any_held = false;
         for (auto& v : voices) {
-            if (v.is_active) {
-                any_active = true;
+            if (v.is_active && v.isKeyHeld()) {
+                any_held = true;
                 break;
             }
         }
-        if (!any_active) vibrato_lfo.trigger();
+        if (!any_held) vibrato_lfo.trigger();
 
         // MASTER transposition
         int master_semitones = (static_cast<int>(master_octave) - 1) * 12 + static_cast<int>(master_note);
         float master_cents = (static_cast<int>(master_fine) - 30);
         float master_factor = __builtin_powf(2.0f, (master_semitones + master_cents / 100.0f) / 12.0f);
 
+        Voice* target = nullptr;
         for (auto& v : voices) {
-            if (!v.is_active) {
-                float freq = 440.0f * __builtin_powf(2.0f, (note - 69) / 12.0f) * master_factor;
-                uint32_t p_inc = static_cast<uint32_t>((freq * 4294967296.0f) / sample_rate);  
-
-                float kf_factor = (static_cast<int16_t>(note) - 60) / 48.0f;
-
-                uint32_t base_dca_rate = 15;  
-                if (v.dca_key_follow > 0) {
-                    base_dca_rate = static_cast<uint32_t>(base_dca_rate * (1.0f + kf_factor * (static_cast<float>(v.dca_key_follow) / 99.0f)));
-                }
-
-                uint16_t base_dcw_level = 32767;
-                if (v.dcw_key_follow > 0) {
-                    float reduction = 1.0f - (kf_factor * (static_cast<float>(v.dcw_key_follow) / 99.0f) * 0.5f);
-                    if (reduction > 1.0f) reduction = 1.0f;
-                    if (reduction < 0.0f) reduction = 0.0f;
-                    base_dcw_level = static_cast<uint16_t>(base_dcw_level * reduction);
-                }
-
-                v.line1.wave1 = v.line1_wave1 != 0 ? (CrispyZebra::Waveform)v.line1_wave1 : current_waveform;
-                v.line1.wave2 = v.line1_wave2 != 0 ? (CrispyZebra::Waveform)v.line1_wave2 : v.line1.wave1;
-                v.line2.wave1 = v.line2_wave1 != 0 ? (CrispyZebra::Waveform)v.line2_wave1 : current_waveform;
-                v.line2.wave2 = v.line2_wave2 != 0 ? (CrispyZebra::Waveform)v.line2_wave2 : v.line2.wave1;
-
-                v.noteOn(note, p_inc, portamento_enabled && any_active, last_note_phase_inc);
-                last_note_phase_inc = p_inc;
-
-                v.line1.dco_eg.keyOn();
-                v.line1.dcw_eg.keyOn();
-                v.line1.dca_eg.keyOn();
-                v.line2.dco_eg.keyOn();
-                v.line2.dcw_eg.keyOn();
-                v.line2.dca_eg.keyOn();
-
-                v.line1.resetForNoteOn();
-                v.line2.resetForNoteOn();
+            if (v.is_active && v.current_note == note) {
+                target = &v;
                 break;
             }
         }
+        if (!target) {
+            for (auto& v : voices) {
+                if (!v.is_active) {
+                    target = &v;
+                    break;
+                }
+            }
+        }
+        if (!target) {
+            for (auto& v : voices) {
+                if (!v.isKeyHeld()) {
+                    target = &v;
+                    break;
+                }
+            }
+        }
+        if (!target) {
+            target = &voices[0];
+            for (auto& v : voices) {
+                if (v.getReleaseLevel() < target->getReleaseLevel()) target = &v;
+            }
+        }
+
+        float freq = 440.0f * __builtin_powf(2.0f, (note - 69) / 12.0f) * master_factor;
+        uint32_t p_inc = static_cast<uint32_t>((freq * 4294967296.0f) / sample_rate);
+
+        target->line1.wave1 = target->line1_wave1 != 0 ? (CrispyZebra::Waveform)target->line1_wave1 : current_waveform;
+        target->line1.wave2 = target->line1_wave2 != 0 ? (CrispyZebra::Waveform)target->line1_wave2 : target->line1.wave1;
+        target->line2.wave1 = target->line2_wave1 != 0 ? (CrispyZebra::Waveform)target->line2_wave1 : current_waveform;
+        target->line2.wave2 = target->line2_wave2 != 0 ? (CrispyZebra::Waveform)target->line2_wave2 : target->line2.wave1;
+
+        target->noteOn(note, p_inc, portamento_enabled && any_held, last_note_phase_inc);
+        last_note_phase_inc = p_inc;
+
+        target->line1.dco_eg.keyOn();
+        target->line1.dcw_eg.keyOn();
+        target->line1.dca_eg.keyOn();
+        target->line2.dco_eg.keyOn();
+        target->line2.dcw_eg.keyOn();
+        target->line2.dca_eg.keyOn();
+
+        target->line1.resetForNoteOn();
+        target->line2.resetForNoteOn();
     }
 
     void midiNoteOff(uint8_t note) {
         for (auto& v : voices) {
             if (v.is_active && v.current_note == note) v.noteOff();
         }
-        bool any_active = false;
+        bool any_held = false;
         for (auto& v : voices) {
-            if (v.is_active) {
-                any_active = true;
+            if (v.is_active && v.isKeyHeld()) {
+                any_held = true;
                 break;
             }
         }
-        if (!any_active) vibrato_lfo.release();
+        if (!any_held) vibrato_lfo.release();
     }
 
     template <typename SampleType, bool Stereo = true>
@@ -840,7 +877,7 @@ void setEgRate(int line, int eg_type, int stage, uint8_t value) {
                 v.line1.phase_inc = line1_phase_inc;
                 v.line2.phase_inc = line2_phase_inc;
 
-                mix += v.process(tables, ring_modulation);
+                mix += v.process(tables, line_select, ring_modulation);
             }
 
             master_dc_offset += (mix - master_dc_offset) / 512;

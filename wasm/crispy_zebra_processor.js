@@ -42,12 +42,18 @@ class CrispyZebraProcessor extends AudioWorkletProcessor {
     this.fn = {};
     this.mem = null;
     this.ready = false;
+    this.wasmBytes = null;
+    this.sampleRate = 44100;
     this._dbg = 0;
     this.port.onmessage = (e) => this._onMsg(e);
   }
 
-  async _initWasm(buf, sr) {
+  async _initWasm(buf, sr, readyType = 'ready', requestId = null) {
     try {
+      this.ready = false;
+      this.mem = null;
+      this.sampleRate = sr;
+      this.wasmBytes = buf.slice(0);
       console.log('[Processor] _initWasm starting, sr:', sr);
       let wasmMem = null;
       const fdWrite = (_fd, iov, iovcnt, pnum) => {
@@ -89,10 +95,10 @@ class CrispyZebraProcessor extends AudioWorkletProcessor {
       this.port.postMessage({t:'sr', s: sr});
       this.ready = true;
       console.log('[Processor] ready=true');
-      this.port.postMessage({ type: 'ready' });
+      this.port.postMessage({ type: readyType, requestId });
     } catch (e) {
       console.error('[Processor] _initWasm error:', e);
-      this.port.postMessage({ type: 'error', msg: 'initWasm: ' + e.message });
+      this.port.postMessage({ type: 'error', msg: 'initWasm: ' + e.message, requestId });
     }
   }
 
@@ -107,6 +113,9 @@ class CrispyZebraProcessor extends AudioWorkletProcessor {
     console.log('[Processor] msg:', m.type, m.f ? m.f : '', m.a ? m.a : '');
     switch (m.type) {
       case 'wasm': this._initWasm(m.buf, m.sr); break;
+      case 'reset':
+        if (this.wasmBytes) this._initWasm(this.wasmBytes.slice(0), this.sampleRate, 'resetReady', m.requestId);
+        break;
       case 'nOn':
         console.log('[Processor] noteOn:', m.n);
         this.port.postMessage({t:'nOn', n: m.n});
