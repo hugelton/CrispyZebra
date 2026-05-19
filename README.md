@@ -1,12 +1,12 @@
-# CrispyZebra
+# <img width="547" height="159" alt="image" src="https://github.com/user-attachments/assets/21dece7f-f301-4545-8ff0-a22f9298c768" />
 
-CrispyZebra is a lightweight, high-performance C++ synthesizer core engine designed to replicate the Phase Distortion (PD) synthesis of the 1980s CZ-series synthesizers. 
 
-Optimized for embedded systems and WebAssembly (WASM) environments, it features precise fixed-point math and exact replica structures of the classic 8-stage envelopes.
+**CrispyZebra** is a lightweight, high-performance C++ synthesizer core engine designed to replicate the Phase Distortion (PD) synthesis of the 1980s CZ-series synthesizers. 
 
 ## Live Demo
-The interactive WebAssembly (WASM) implementation with a full GUI is available at:
-[https://kurogedelic.github.io/CrispyZebra/](https://kurogedelic.github.io/CrispyZebra/)
+[https://kurogedelic.github.io/CrispyZebra/wasm](https://kurogedelic.github.io/CrispyZebra/wasm)
+The interactive WebAssembly (WASM) implementation with a full GUI is available.
+
 
 
 ## Features
@@ -18,9 +18,12 @@ The interactive WebAssembly (WASM) implementation with a full GUI is available a
 
 ## Code Architecture
 The engine is structured within the `CrispyZebra` namespace:
+* `Oscillator`: The core Phase Distortion engine utilizing a custom Sine Look-Up Table (LUT) to warp phases dynamically.
+  <img width="299" height="105" alt="image" src="https://github.com/user-attachments/assets/6894ff94-8fbd-4a15-bfbd-75797126c206" />
 * `Envelope`: High-precision Q16 internal state envelope generator supporting up to 8 stages with rate/level configurations.
 * `LFO`: Low-frequency oscillator providing Triangle, Square, Saw Up, and Saw Down shapes for pitch modulation.
-* `Oscillator`: The core Phase Distortion engine utilizing a custom Sine Look-Up Table (LUT) to warp phases dynamically.
+  <img width="290" height="51" alt="image" src="https://github.com/user-attachments/assets/f00b5ee1-1dd4-4853-8ee0-7ad8314ad988" />
+ 
 * `Voice`: A polyphonic container that couples two parallel lines (Oscillators) with routing, detuning, and modulation options.
 * `Engine<MaxVoices>`: The template-driven master class that handles MIDI inputs (`midiNoteOn` / `midiNoteOff`) and renders block buffers.
 
