@@ -12,7 +12,7 @@ The interactive WebAssembly (WASM) implementation with a full GUI is available.
 
 ## Features
 * **Authentic PD Synthesis:** Reproduces the Phase Distortion waveforms including Saw, Square, Pulse, Double Sine, Saw-Pulse, and Resonance windows (Saw, Triangle, Trapezoid).
-* **8-Stage Envelopes:** Three independent 8-stage EGs (DCO, DCW, DCA) per voice, fully compatible with vintage hardware SysEx point systems (Sustain/End points).
+* **8-Stage Envelopes:** Three independent 8-stage EGs (DCO, DCW, DCA) per voice, fully compatible with vintage hardware SysEx point systems (Sustain/End points). DCA output can remain linear or use a selectable pseudo-exponential response for CZ-style loudness experiments.
 * **Fixed-Point Math:** Designed with platform-independent integer arithmetic (int32_t / Q16) for minimal CPU overhead.
 * **WASM & Embedded Ready:** Zero external dependencies (header-only wrapper ready). Suitable for both browser-based execution and microcontrollers.
 * **Modulation & Master Section:** Built-in Vibrato LFO, Detuning, Key Follow (DCA/DCW), Ring Modulation, Noise Modulation, Portamento, and Master Drive/Pan controls.
@@ -28,7 +28,7 @@ The engine is structured within the `CrispyZebra` namespace:
   <img width="290" height="51" alt="image" src="https://github.com/user-attachments/assets/f00b5ee1-1dd4-4853-8ee0-7ad8314ad988" />
  
 * `Voice`: A polyphonic container that couples two parallel lines (Oscillators) with routing, detuning, and modulation options.
-* `Engine<MaxVoices>`: The template-driven master class that handles MIDI inputs (`midiNoteOn` / `midiNoteOff`) and renders block buffers.
+* `Engine<MaxVoices>`: The template-driven master class that handles MIDI inputs (`midiNoteOn` / `midiNoteOff`) and renders block buffers. The default WebAssembly build intentionally uses `Engine<8>` in all line-select modes; two-line patches are not reduced to four voices.
 
 ## Quick Start
 CrispyZebra is a single-header engine. Include `CrispyZebra.h` into your project.
@@ -61,6 +61,17 @@ void onMidiEvent(uint8_t status, uint8_t note, uint8_t velocity) {
 }
 
 ```
+
+### Web Build Sample Rate
+
+The WebAssembly build defaults to 44.1 kHz, but the default engine rate and the browser `AudioContext` request can be selected at build time:
+
+```sh
+cd wasm
+make SAMPLE_RATE=48000
+```
+
+Browsers may still choose the hardware output rate, so the engine is initialized with the actual `AudioContext.sampleRate` after startup.
 
 ## Related Projects
 * [**PicoCZ:**](https://github.com/kurogedelic/PicoCZ/) A hardware port of the CrispyZebra engine optimized for the RP2040 (Raspberry Pi Pico) microcontroller. 

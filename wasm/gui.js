@@ -20,10 +20,12 @@ const masterState = {
     drive: 0,
     noteSemitone: 0,
     fineTuning: 30,
+    monoEnabled: false,
     portamentoEnabled: false,
     portamentoTime: 0,
     pitchBendUp: 2,
-    pitchBendDown: 2
+    pitchBendDown: 2,
+    dcaCurveMode: 0
 };
 const vibratoState = {
     waveform: 0,
@@ -33,8 +35,10 @@ const vibratoState = {
 };
 const PRESET_COUNT = 100;
 const PRESET_PATH = 'presets/';
-const WASM_ASSET_VERSION = '24';
+const WASM_ASSET_VERSION = '26';
 const PRESET_ASSET_VERSION = Date.now();
+const REQUESTED_SAMPLE_RATE = Number(window.CRISPY_ZEBRA_SAMPLE_RATE) || 44100;
+const FRONT_PANEL_WAVEFORM_COUNT = 8;
 let currentPresetIndex = 0;
 let currentPresetKind = 'factory';
 let currentUserPresetId = null;
@@ -63,6 +67,10 @@ const waveforms = [
     { name: 'RESONANCE-1', path: 'M 88,80 C 84.22,80 84.22,78.96 80.45,78.96 S 76.68,80 72.91,80 S 69.13,62.91 65.36,62.91 S 61.59,80 57.82,80 S 54.04,50.18 50.27,50.18 S 46.5,80 42.73,80 S 38.95,40.48 35.18,40.48 S 31.41,80 27.64,80 S 23.86,30.98 20.09,30.98 S 16.32,80 12.55,80 S 8.77,1 5,1 S 1.23,80 -2.55,80' },
     { name: 'RESONANCE-2', path: 'M 88,80 C 84.82,80 84.82,75.38 81.65,75.38 S 78.47,80 75.3,80 S 72.13,49.03 68.95,49.03 S 65.78,80 62.6,80 S 59.43,1 56.26,1 S 53.08,80 49.91,80 S 46.73,1 43.56,1 S 40.39,80 37.21,80 S 34.04,49.03 30.86,49.03 S 27.69,80 24.52,80 S 21.34,75.38 18.17,75.38 S 14.99,80 11.82,80' },
     { name: 'RESONANCE-3', path: 'M 88,80 C 84.82,80 84.82,67.14 81.65,67.14 S 78.47,80 75.3,80 S 72.13,57.17 68.95,57.17 S 65.78,80 62.6,80 S 59.43,41.97 56.26,41.97 S 53.08,80 49.91,80 S 46.73,1 43.56,1 S 40.39,80 37.21,80 S 34.04,1 30.86,1 S 27.69,80 24.52,80 S 21.34,1 18.17,1 S 14.99,80 11.82,80' },
+    { name: 'NULL', path: 'M 12,50 L 88,50', hidden: true },
+    { name: 'PULSE2', path: 'M 12,80 L 18,20 L 42,80 L 88,80', hidden: true },
+    { name: 'REZ-PULSE', path: 'M 12,80 C 18,20 24,20 30,80 S 42,20 48,80 S 60,20 66,80 L 66,80 L 88,80', hidden: true },
+    { name: 'REZ-DBL-SAW', path: 'M 12,80 C 18,20 24,20 30,80 S 42,20 48,80 L 50,20 C 56,20 62,80 68,80 S 80,20 88,80', hidden: true },
 ];
 
 const vibratoForms = [{ name: 'VIB-TRIANGLE', path: 'M 88,50.31 L 69.04,80.31 L 50.07,50.31 L 31.11,20.31 L 12,50.31' },
@@ -85,6 +93,7 @@ let midiAccess = null;
 let midiConnected = false;
 let midiModWheel = 1;
 const midiHeldNotes = new Set();
+let monoCurrentNote = null;
 let presetEngineResetRequest = 0;
 const pendingPresetEngineResets = new Map();
 
@@ -93,7 +102,12 @@ async function initAudio() {
     console.log('[initAudio] starting...');
     if (audioCtx) { console.log('[initAudio] audioCtx already exists'); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AC();
+    try {
+        audioCtx = new AC({ sampleRate: REQUESTED_SAMPLE_RATE });
+    } catch (e) {
+        console.warn('[initAudio] requested sampleRate failed, using browser default:', REQUESTED_SAMPLE_RATE, e);
+        audioCtx = new AC();
+    }
     console.log('[initAudio] audioCtx created, state:', audioCtx.state);
     // setStatus('⏳ Loading worklet...');
     if (audioCtx.state === 'suspended') await audioCtx.resume();
@@ -200,6 +214,7 @@ function resetPresetVoicesAndSync() {
     activeNotes.clear();
     kbNotes.clear();
     midiHeldNotes.clear();
+    monoCurrentNote = null;
 
     if (!workletNode) {
         fullSync();
@@ -237,6 +252,15 @@ function syncVibratoDepth() {
 function nOn(n) {
     console.log('[nOn]', n, 'isRunning=', isRunning);
     if (isRunning) {
+        if (masterState.monoEnabled) {
+            workletNode.port.postMessage({ type: 'nOn', n });
+            activeNotes.add(n);
+            monoCurrentNote = n;
+            setTimeout(() => {
+                workletNode.port.postMessage({ type: 'debug' });
+            }, 100);
+            return;
+        }
         workletNode.port.postMessage({ type: 'nOn', n });
         activeNotes.add(n);
         // Debug: check engine state after note on
@@ -250,6 +274,19 @@ function nOn(n) {
 function nOff(n) {
     console.log('[nOff]', n);
     if (isRunning) {
+        if (masterState.monoEnabled) {
+            activeNotes.delete(n);
+            if (monoCurrentNote !== n) return;
+            const fallback = Array.from(activeNotes).pop();
+            if (fallback !== undefined) {
+                workletNode.port.postMessage({ type: 'nOn', n: fallback });
+                monoCurrentNote = fallback;
+            } else {
+                workletNode.port.postMessage({ type: 'nOff', n });
+                monoCurrentNote = null;
+            }
+            return;
+        }
         workletNode.port.postMessage({ type: 'nOff', n });
         activeNotes.delete(n);
     }
@@ -358,12 +395,14 @@ function fullSync() {
     s('set_master_pan', masterState.pan);
     s('set_master_drive', masterState.drive);
     s('set_master_volume', masterState.volume);
+    s('set_mono_mode', masterState.monoEnabled);
     s('set_portamento_enabled', masterState.portamentoEnabled);
     s('set_portamento_time', masterState.portamentoTime);
     s('set_pitch_bend_range_up', masterState.pitchBendUp);
     s('set_pitch_bend_range_down', masterState.pitchBendDown);
+    s('set_dca_curve_mode', masterState.dcaCurveMode);
 
-    // DCO waves: UI 0-7 → Backend 1-8 (+1)
+    // DCO waves: UI 0-11 -> Backend 1-12 (+1)
     ['dco1', 'dco2'].forEach(prefix => {
         const eg = ensureEgState(prefix);
         const w1 = eg.waveforms[0] + 1;
@@ -473,12 +512,15 @@ function openWaveformCatalog(target, clientX, clientY) {
     catalog.innerHTML = '';
 
     const isVibrato = target.dataset.egPrefix === 'vibrato';
-    const waveformList = isVibrato ? vibratoForms : waveforms;
+    const waveformList = (isVibrato ? vibratoForms : waveforms)
+        .map((waveform, index) => ({ waveform, index }));
 
-    waveformList.forEach((waveform, index) => {
+    waveformList.forEach(({ waveform, index }) => {
         const button = document.createElement('button');
-        button.className = 'waveform-card';
+        button.className = `waveform-card${waveform.hidden ? ' is-hidden-wave' : ''}`;
         button.type = 'button';
+        button.title = waveform.name;
+        button.setAttribute('aria-label', waveform.name);
         button.innerHTML = `
             <span class="wave-number">${index + 1}</span>
             ${waveformSvg(index, isVibrato)}
@@ -674,6 +716,20 @@ function initMasterPanel() {
             masterState.portamentoEnabled = !masterState.portamentoEnabled;
             lamp?.classList.toggle('is-active', masterState.portamentoEnabled);
             emitUiChange('masterChange', { key: 'portamentoEnabled', value: masterState.portamentoEnabled });
+        });
+    }
+
+    const monoBtn = document.getElementById('master-mono-toggle');
+    if (monoBtn) {
+        const lamp = monoBtn.closest('.btn-container')?.querySelector('.lamp');
+        lamp?.classList.toggle('is-active', masterState.monoEnabled);
+        monoBtn.addEventListener('click', () => {
+            masterState.monoEnabled = !masterState.monoEnabled;
+            if (!masterState.monoEnabled) monoCurrentNote = null;
+            else monoCurrentNote = Array.from(activeNotes).pop() ?? null;
+            lamp?.classList.toggle('is-active', masterState.monoEnabled);
+            sendWorkletSet('set_mono_mode', masterState.monoEnabled);
+            emitUiChange('masterChange', { key: 'monoEnabled', value: masterState.monoEnabled });
         });
     }
 }
@@ -1185,16 +1241,21 @@ function drawEg(egPrefix) {
 function waveNameToIndex(name) {
     const map = {
         'SAW': 0, 'SQUARE': 1, 'PULSE': 2,
-        'DOUBLE_SINE': 3, 'DBL-SINE': 3,
+        'DOUBLE_SINE': 3, 'DBL_SINE': 3, 'DBL-SINE': 3, 'SINE_PULSE': 3, 'SINE-PULSE': 3,
         'SAW_PULSE': 4, 'SAW-PULSE': 4,
-        'RESONANCE-1': 5, 'RESONANCE_1': 5,
-        'RESONANCE-2': 6, 'RESONANCE_2': 6,
-        'RESONANCE-3': 7, 'RESONANCE_3': 7,
+        'RESONANCE-1': 5, 'RESONANCE_1': 5, 'RESO1': 5,
+        'RESONANCE-2': 6, 'RESONANCE_2': 6, 'RESO2': 6,
+        'RESONANCE-3': 7, 'RESONANCE_3': 7, 'RESO3': 7,
         'REZ_SAW': 5, 'REZ-SAW': 5,
         'REZ_TRI': 6, 'REZ-TRI': 6,
-        'REZ_TRAP': 7, 'REZ-TRAP': 7
+        'REZ_TRAP': 7, 'REZ-TRAP': 7,
+        'NULL_WAVE': 8, 'NULL-WAVE': 8, 'NULL': 8,
+        'PULSE2': 9, 'PULSE_2': 9, 'PULSE-2': 9,
+        'REZ_PULSE': 10, 'REZ-PULSE': 10,
+        'REZ_DBL_SAW': 11, 'REZ-DBL-SAW': 11, 'REZ_DOUBLE_SAW': 11, 'REZ-DOUBLE-SAW': 11, 'MULTI_SINE_DBL_SAW': 11
     };
-    return name in map ? map[name] : 0;
+    const key = String(name || '').toUpperCase();
+    return key in map ? map[key] : 0;
 }
 
 function vibratoNameToIndex(name) {
@@ -1208,8 +1269,22 @@ function vibratoNameToIndex(name) {
     return key in map ? map[key] : 0;
 }
 
+function clampInteger(value, min, max, fallback) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.min(max, Math.max(min, Math.trunc(n)));
+}
+
+function normalizeMasterOctave(value) {
+    return clampInteger(value, 0, 2, 1);
+}
+
+function normalizeLegacyLineOctave(value) {
+    return clampInteger(Number(value) + 1, 0, 2, 1);
+}
+
 function waveformIndexToName(index) {
-    return ['SAW', 'SQUARE', 'PULSE', 'DOUBLE_SINE', 'SAW_PULSE', 'REZ_SAW', 'REZ_TRI', 'REZ_TRAP'][index] || 'SAW';
+    return ['SAW', 'SQUARE', 'PULSE', 'DOUBLE_SINE', 'SAW_PULSE', 'REZ_SAW', 'REZ_TRI', 'REZ_TRAP', 'NULL_WAVE', 'PULSE2', 'REZ_PULSE', 'REZ_DBL_SAW'][index] || 'SAW';
 }
 
 function vibratoIndexToName(index) {
@@ -1363,8 +1438,8 @@ function randomLineJson(suffix) {
     const dcw = randomEgJson('dcw');
     const dca = randomEgJson('dca');
     const line = {
-        wave1: waveformIndexToName(randomInt(0, waveforms.length - 1)),
-        wave2: waveformIndexToName(randomInt(0, waveforms.length - 1)),
+        wave1: waveformIndexToName(randomInt(0, FRONT_PANEL_WAVEFORM_COUNT - 1)),
+        wave2: waveformIndexToName(randomInt(0, FRONT_PANEL_WAVEFORM_COUNT - 1)),
         dcaKeyFollow: randomInt(0, 99),
         dcwKeyFollow: randomInt(0, 99),
         dcaEndPoint: dca.endPoint,
@@ -1406,6 +1481,7 @@ function buildRandomPresetJson() {
                 drive: randomInt(0, 45),
                 noteSemitone: randomInt(0, 11),
                 fineTuning: randomInt(20, 40),
+                monoEnabled: false,
                 portamentoEnabled: randomChance(0.12),
                 portamentoTime: randomInt(0, 45),
                 pitchBendUp: randomInt(0, 12),
@@ -1432,6 +1508,7 @@ async function randomizePreset() {
     activeNotes.clear();
     kbNotes.clear();
     midiHeldNotes.clear();
+    monoCurrentNote = null;
 
     const applyRandom = () => {
         const preset = buildRandomPresetJson();
@@ -1492,11 +1569,14 @@ function applyPreset(preset, index, kind = 'factory', userId = null) {
 
     if (g.master) {
         masterState.volume = g.master.volume ?? masterState.volume;
-        masterState.octave = g.master.octave ?? g.lineSelect.octave;
+        masterState.octave = g.master.octave !== undefined
+            ? normalizeMasterOctave(g.master.octave)
+            : normalizeLegacyLineOctave(g.lineSelect.octave);
         masterState.pan = g.master.pan ?? masterState.pan;
         masterState.drive = g.master.drive ?? masterState.drive;
         masterState.noteSemitone = g.master.noteSemitone ?? masterState.noteSemitone;
         masterState.fineTuning = g.master.fineTuning ?? masterState.fineTuning;
+        masterState.monoEnabled = g.master.monoEnabled ?? masterState.monoEnabled;
         masterState.portamentoEnabled = g.master.portamentoEnabled ?? masterState.portamentoEnabled;
         masterState.portamentoTime = g.master.portamentoTime ?? masterState.portamentoTime;
         masterState.pitchBendUp = g.master.pitchBendUp ?? masterState.pitchBendUp;
@@ -1513,9 +1593,12 @@ function applyPreset(preset, index, kind = 'factory', userId = null) {
         document.getElementById('master-portamento-toggle')
             ?.closest('.btn-container')?.querySelector('.lamp')
             ?.classList.toggle('is-active', masterState.portamentoEnabled);
+        document.getElementById('master-mono-toggle')
+            ?.closest('.btn-container')?.querySelector('.lamp')
+            ?.classList.toggle('is-active', masterState.monoEnabled);
     } else {
-        masterState.octave = g.lineSelect.octave;
-        setFaderById('master-octave', g.lineSelect.octave);
+        masterState.octave = normalizeLegacyLineOctave(g.lineSelect.octave);
+        setFaderById('master-octave', masterState.octave);
     }
 
     const vibIdx = vibratoNameToIndex(g.vibratoWaveform);
@@ -1675,6 +1758,7 @@ function buildCurrentPresetJson() {
                 drive: masterState.drive,
                 noteSemitone: masterState.noteSemitone,
                 fineTuning: masterState.fineTuning,
+                monoEnabled: masterState.monoEnabled,
                 portamentoEnabled: masterState.portamentoEnabled,
                 portamentoTime: masterState.portamentoTime,
                 pitchBendUp: masterState.pitchBendUp,

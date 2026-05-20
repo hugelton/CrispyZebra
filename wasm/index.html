@@ -30,8 +30,31 @@
             </div>
 
             <div class="header-control">
-                <div class="header-global">
 
+                <div class="header-global">
+                    <div class="header-preset-nav-tools">
+                        <div class="btn-container ui-switch">
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn preset-randomize"></button>
+                            </div>
+                            <div class="label">RANDOM</div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="header-global-section">
+                        <div class="header-global-section-header">MONO</div>
+                        <div class="header-global-section-contents">
+                            <div class="btn-container ui-switch">
+                                <div class="lamp"></div>
+                                <div class="btn-socket">
+                                    <button type="button" class="synth-btn" id="master-mono-toggle"></button>
+                                </div>
+                                <div class="label">ON/OFF</div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="header-global-section">
                         <div class="header-global-section-header">PORTAMENT</div>
@@ -111,19 +134,19 @@
                             <div class="lcd-text lcd-line-fg" id="lcd-line2">ready </div>
                         </div>
                     </div>
-             
+
                     <div class="header-preset-nav-tools">
 
-       <div class="btn-container ui-switch">
-                        <div class="btn-socket">
-                            <button type="button" class="synth-btn is-black preset-prev">◁</button>
+                        <div class="btn-container ui-switch">
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn is-black preset-prev">◁</button>
+                            </div>
+                            <div class="label">PREV</div>
+                            <div class="btn-socket">
+                                <button type="button" class="synth-btn is-black preset-next">▷</button>
+                            </div>
+                            <div class="label">NEXT</div>
                         </div>
-                        <div class="label">PREV</div>
-                        <div class="btn-socket">
-                            <button type="button" class="synth-btn is-black preset-next">▷</button>
-                        </div>
-                        <div class="label">NEXT</div>
-                    </div>
 
 
                         <div class="btn-container ui-switch">
@@ -136,13 +159,6 @@
                                 <button type="button" class="synth-btn preset-load"></button>
                             </div>
                             <div class="label">LOAD</div>
-                        </div>
-
-                        <div class="btn-container ui-switch">
-                            <div class="btn-socket">
-                                <button type="button" class="synth-btn preset-randomize">R</button>
-                            </div>
-                            <div class="label">RANDOM</div>
                         </div>
 
                         <div class="btn-container ui-switch">
@@ -508,7 +524,8 @@
 
     </div>
 
-    <script src="gui.js" defer></script>
+    <script src="sample_rate_config.js?v=26" defer></script>
+    <script src="gui.js?v=26" defer></script>
 </body>
 
 </html>

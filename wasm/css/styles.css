@@ -114,6 +114,9 @@ body {
 .header-global-section {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    flex:1;
+    margin-top:12px;
 }
 
 .header-global-section-header {
@@ -155,7 +158,7 @@ width: 10px;
 
 
 .header-global-section-contents {
-    flex: 1;
+height: 100%;
     display: flex;
     align-items: center;  gap:
         6px;
@@ -373,6 +376,26 @@ width: 10px;
 .waveform-window:hover,
 .waveform-card:hover {
     background: #111315;
+}
+
+.waveform-card.is-hidden-wave {
+    border-color: rgba(255, 215, 0, 0.56);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 215, 0, 0.16),
+        inset 0 1px 2px rgba(0, 0, 0, 0.28),
+        0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.waveform-card.is-hidden-wave::after {
+    content: "S";
+    position: absolute;
+    right: 4px;
+    bottom: 3px;
+    color: rgba(255, 215, 0, 0.82);
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 8px;
+    font-weight: 900;
+    line-height: 1;
 }
 
 .wave-number {

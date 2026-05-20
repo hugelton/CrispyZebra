@@ -22,11 +22,16 @@
 
 #include <cstdint>
 
+#ifndef CRISPY_ZEBRA_DEFAULT_SAMPLE_RATE
+#define CRISPY_ZEBRA_DEFAULT_SAMPLE_RATE 44100u
+#endif
+
 namespace CrispyZebra {
 
 // Fixed-point arithmetic support macros and inline functions
 inline int32_t multiply_q15(int32_t a, int32_t b) { return (a * b) >> 15; }
 inline int32_t multiply_q16(int32_t a, int32_t b) { return (a * b) >> 16; }
+static constexpr uint32_t DEFAULT_SAMPLE_RATE = CRISPY_ZEBRA_DEFAULT_SAMPLE_RATE;
 
 enum class Waveform : uint8_t {
     SAW         = 1, // Sawtooth
@@ -36,8 +41,45 @@ enum class Waveform : uint8_t {
     SAW_PULSE   = 5, // Saw-pulse
     REZ_SAW     = 6, // Resonance (sawtooth window)
     REZ_TRI     = 7, // Resonance (triangle window)
-    REZ_TRAP    = 8  // Resonance (trapezoid window)
+    REZ_TRAP    = 8, // Resonance (trapezoid window)
+    NULL_WAVE   = 9, // Hidden SysEx waveform: flat/silent
+    PULSE2      = 10, // Hidden SysEx waveform: alternate pulse
+    REZ_PULSE   = 11, // Hidden SysEx resonance (pulse window)
+    REZ_DBL_SAW = 12  // Hidden SysEx resonance (double-saw window)
 };
+
+inline Waveform decodeCzWaveformBits(uint8_t wave_code, uint8_t window_code) {
+    switch (wave_code & 0x07) {
+        case 0: return Waveform::SAW;
+        case 1: return Waveform::SQUARE;
+        case 2: return Waveform::PULSE;
+        case 3: return Waveform::NULL_WAVE;
+        case 4: return Waveform::DOUBLE_SINE;
+        case 5: return Waveform::SAW_PULSE;
+        case 6:
+            switch (window_code & 0x07) {
+                case 2: return Waveform::REZ_TRI;
+                case 3: return Waveform::REZ_TRAP;
+                case 4: return Waveform::REZ_PULSE;
+                case 5:
+                case 6:
+                case 7: return Waveform::REZ_DBL_SAW;
+                case 0:
+                case 1:
+                default: return Waveform::REZ_SAW;
+            }
+        case 7: return Waveform::PULSE2;
+        default: return Waveform::SAW;
+    }
+}
+
+inline Waveform decodeCzWaveformWord(uint16_t word, bool second_wave) {
+    uint8_t wave_code = second_wave
+        ? static_cast<uint8_t>((word >> 10) & 0x07)
+        : static_cast<uint8_t>((word >> 13) & 0x07);
+    uint8_t window_code = static_cast<uint8_t>((word >> 6) & 0x07);
+    return decodeCzWaveformBits(wave_code, window_code);
+}
 
 enum class LineSelectMode : uint8_t {
     LINE1_ONLY  = 0, // LINE 1 only
@@ -51,6 +93,11 @@ enum class LfoWaveform : uint8_t {
     SQUARE      = 1, // Square wave
     SAW_UP      = 2, // Upward sawtooth
     SAW_DOWN    = 3  // Downward sawtooth
+};
+
+enum class DcaCurveMode : uint8_t {
+    LINEAR     = 0,
+    PSEUDO_EXP = 1
 };
 
 // ==========================================
@@ -217,6 +264,7 @@ public:
 
     Waveform wave1 = Waveform::REZ_SAW;  
     Waveform wave2 = Waveform::REZ_SAW;  
+    DcaCurveMode dca_curve_mode = DcaCurveMode::LINEAR;
 
     Envelope dco_eg;  
     Envelope dcw_eg;  
@@ -224,6 +272,13 @@ public:
 
     static inline uint16_t scaleDcw(uint16_t value, uint16_t max_value) {
         return static_cast<uint16_t>((static_cast<uint32_t>(value) * max_value) >> 16);
+    }
+
+    static inline uint16_t applyDcaCurve(uint16_t value, DcaCurveMode mode) {
+        if (mode == DcaCurveMode::PSEUDO_EXP) {
+            return static_cast<uint16_t>(((static_cast<uint32_t>(value) * value) + 32768) >> 16);
+        }
+        return value;
     }
 
     void resetForNoteOn() {
@@ -249,7 +304,7 @@ public:
 
         uint16_t dcw = scaleDcw(cached_dcw, 56000);
         uint16_t rez_dcw = scaleDcw(dcw, 44000);
-        uint16_t dca = cached_dca;
+        uint16_t dca = applyDcaCurve(cached_dca, dca_curve_mode);
 
         uint16_t phase_16 = phase >> 16;
         int32_t raw_sample = 0;
@@ -298,6 +353,20 @@ public:
                 uint32_t xp_pulse = 65535 - ((static_cast<uint32_t>(dcw) * 63487) >> 16);
                 if (local_phase < xp_pulse) {
                     pd_phase = (static_cast<uint32_t>(local_phase) * 65535) / xp_pulse;
+                } else {
+                    pd_phase = 65535;
+                }
+                raw_sample = static_cast<int32_t>(tables.sin_lut[pd_phase >> shift_bits]) + 32768;
+                break;
+            }
+            case Waveform::NULL_WAVE: {
+                raw_sample = 32768;
+                break;
+            }
+            case Waveform::PULSE2: {
+                uint32_t xp_pulse2 = 65535 - ((static_cast<uint32_t>(dcw) * 50000) >> 16);
+                if (local_phase < xp_pulse2) {
+                    pd_phase = (static_cast<uint32_t>(local_phase) * 65535) / xp_pulse2;
                 } else {
                     pd_phase = 65535;
                 }
@@ -372,6 +441,26 @@ public:
                 raw_sample = ((core_bipolar * static_cast<int32_t>(window)) >> 16) + 32768;
                 break;
             }
+            case Waveform::REZ_PULSE: {
+                uint32_t res_phase_32 = static_cast<uint32_t>(local_phase)
+                    + ((static_cast<uint64_t>(local_phase) * rez_dcw * 7) >> 16);
+                uint16_t res_phase = static_cast<uint16_t>(res_phase_32 & 0xFFFF);
+                int32_t core_bipolar = (static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]) * 5) >> 3;
+                uint32_t window = (local_phase < 32768) ? 65535 : 0;
+                raw_sample = ((core_bipolar * static_cast<int32_t>(window)) >> 16) + 32768;
+                break;
+            }
+            case Waveform::REZ_DBL_SAW: {
+                uint32_t res_phase_32 = static_cast<uint32_t>(local_phase)
+                    + ((static_cast<uint64_t>(local_phase) * rez_dcw * 7) >> 16);
+                uint16_t res_phase = static_cast<uint16_t>(res_phase_32 & 0xFFFF);
+                int32_t core_bipolar = (static_cast<int32_t>(tables.sin_lut[res_phase >> shift_bits]) * 5) >> 3;
+                uint32_t window = (local_phase < 32768)
+                    ? 65535 - (static_cast<uint32_t>(local_phase) << 1)
+                    : 65535 - (static_cast<uint32_t>(local_phase - 32768) << 1);
+                raw_sample = ((core_bipolar * static_cast<int32_t>(window)) >> 16) + 32768;
+                break;
+            }
         }
         
         int32_t sample = (raw_sample * dca) >> 16;
@@ -386,7 +475,7 @@ class Voice {
 public:
     Oscillator line1;
     Oscillator line2;
-    uint32_t sample_rate = 44100;
+    uint32_t sample_rate = DEFAULT_SAMPLE_RATE;
     uint8_t current_note = 0;
     bool is_active = false;
     uint32_t current_line1_base_phase_inc = 0;
@@ -395,8 +484,6 @@ public:
     uint32_t target_line2_base_phase_inc = 0;
 
     uint32_t samples_since_note_off = 0;
-    static const uint32_t NOTE_OFF_TIMEOUT = 44100 * 2;  
-
     uint8_t line1_wave1 = 6;  
     uint8_t line1_wave2 = 0;  
     uint8_t line2_wave1 = 6;  
@@ -467,7 +554,7 @@ public:
             uint32_t dca1_level = line1.dca_eg.current_level;
             uint32_t dca2_level = line2.dca_eg.current_level;
             if (dca1_level < 100 && dca2_level < 100) return true;
-            if (samples_since_note_off > NOTE_OFF_TIMEOUT) return true;
+            if (samples_since_note_off > sample_rate * 2) return true;
         } else {
             samples_since_note_off = 0;
         }
@@ -507,13 +594,15 @@ public:
 
 // ==========================================
 //  Template-driven engine class
+//  MaxVoices is an intentional engine capacity, not a CZ line-mode limiter.
+//  CrispyZebra keeps Engine<8> available in both one-line and two-line modes.
 // ==========================================
 template <uint8_t MaxVoices = 8>
 class Engine {
 private:
     Voice voices[MaxVoices];
     Tables tables;
-    uint32_t sample_rate = 44100;
+    uint32_t sample_rate = DEFAULT_SAMPLE_RATE;
     Waveform current_waveform = Waveform::REZ_SAW;  
 
     LFO vibrato_lfo;
@@ -531,6 +620,7 @@ private:
     uint8_t master_volume = 80;        // 0-99
     bool portamento_enabled = false;
     uint8_t portamento_time = 0;       // 0-99
+    bool mono_mode = false;
     uint8_t pitch_bend_up_semitones = 2;
     uint8_t pitch_bend_down_semitones = 2;
     int16_t pitch_bend_value = 0;      // -8192 to +8191
@@ -679,25 +769,38 @@ void setEgRate(int line, int eg_type, int stage, uint8_t value) {
     void setVibratoRate(uint16_t rate) { vibrato_lfo.rate = rate; vibrato_lfo.setSampleRate(sample_rate); }
     void setVibratoDepth(uint16_t depth) { vibrato_lfo.depth = depth; }
 
-    void setDetuneOctave(uint8_t octave) { for (auto& v : voices) v.detune_octave = octave; }
-    void setDetuneNote(uint8_t note) { for (auto& v : voices) v.detune_note = note; }
-    void setDetuneFine(uint8_t fine) { for (auto& v : voices) v.detune_fine = fine; }
+    void setDetuneOctave(uint8_t octave) { for (auto& v : voices) v.detune_octave = octave > 3 ? 3 : octave; }
+    void setDetuneNote(uint8_t note) { for (auto& v : voices) v.detune_note = note > 11 ? 11 : note; }
+    void setDetuneFine(uint8_t fine) { for (auto& v : voices) v.detune_fine = fine > 60 ? 60 : fine; }
     void setDetuneSign(int8_t sign) { for (auto& v : voices) v.detune_sign = sign; }
 
     void setDCWKeyFollow(uint8_t amount) { for (auto& v : voices) v.dcw_key_follow = amount; }
     void setDCAKeyFollow(uint8_t amount) { for (auto& v : voices) v.dca_key_follow = amount; }
+    void setDcaCurveMode(DcaCurveMode mode) {
+        for (auto& v : voices) {
+            v.line1.dca_curve_mode = mode;
+            v.line2.dca_curve_mode = mode;
+        }
+    }
+    uint8_t getMaxVoiceCount() const { return MaxVoices; }
 
     // ─── MASTER section ───
-    void setMasterOctave(uint8_t oct) { master_octave = oct; }
-    void setMasterNote(uint8_t note) { master_note = note; }
-    void setMasterFine(uint8_t fine) { master_fine = fine; }
-    void setMasterPan(uint8_t pan) { master_pan = pan; }
-    void setMasterDrive(uint8_t drive) { master_drive = drive; }
-    void setMasterVolume(uint8_t vol) { master_volume = vol; }
+    void setMasterOctave(uint8_t oct) { master_octave = oct > 2 ? 1 : oct; }
+    void setMasterNote(uint8_t note) { master_note = note > 11 ? 11 : note; }
+    void setMasterFine(uint8_t fine) { master_fine = fine > 60 ? 60 : fine; }
+    void setMasterPan(uint8_t pan) { master_pan = pan > 99 ? 99 : pan; }
+    void setMasterDrive(uint8_t drive) { master_drive = drive > 99 ? 99 : drive; }
+    void setMasterVolume(uint8_t vol) { master_volume = vol > 99 ? 99 : vol; }
     void setPortamentoEnabled(bool enabled) { portamento_enabled = enabled; }
-    void setPortamentoTime(uint8_t time) { portamento_time = time; }
-    void setPitchBendRangeUp(uint8_t semitones) { pitch_bend_up_semitones = semitones; }
-    void setPitchBendRangeDown(uint8_t semitones) { pitch_bend_down_semitones = semitones; }
+    void setPortamentoTime(uint8_t time) { portamento_time = time > 99 ? 99 : time; }
+    void setMonoMode(bool enabled) {
+        mono_mode = enabled;
+        if (mono_mode) {
+            for (uint8_t i = 1; i < MaxVoices; i++) voices[i].is_active = false;
+        }
+    }
+    void setPitchBendRangeUp(uint8_t semitones) { pitch_bend_up_semitones = semitones > 24 ? 24 : semitones; }
+    void setPitchBendRangeDown(uint8_t semitones) { pitch_bend_down_semitones = semitones > 24 ? 24 : semitones; }
     void setPitchBend(int16_t value) {
         if (value < -8192) value = -8192;
         if (value > 8191) value = 8191;
@@ -759,32 +862,37 @@ void setEgRate(int line, int eg_type, int stage, uint8_t value) {
         float master_factor = __builtin_powf(2.0f, (master_semitones + master_cents / 100.0f) / 12.0f);
 
         Voice* target = nullptr;
-        for (auto& v : voices) {
-            if (v.is_active && v.current_note == note) {
-                target = &v;
-                break;
-            }
-        }
-        if (!target) {
-            for (auto& v : voices) {
-                if (!v.is_active) {
-                    target = &v;
-                    break;
-                }
-            }
-        }
-        if (!target) {
-            for (auto& v : voices) {
-                if (!v.isKeyHeld()) {
-                    target = &v;
-                    break;
-                }
-            }
-        }
-        if (!target) {
+        if (mono_mode) {
             target = &voices[0];
+            for (uint8_t i = 1; i < MaxVoices; i++) voices[i].is_active = false;
+        } else {
             for (auto& v : voices) {
-                if (v.getReleaseLevel() < target->getReleaseLevel()) target = &v;
+                if (v.is_active && v.current_note == note) {
+                    target = &v;
+                    break;
+                }
+            }
+            if (!target) {
+                for (auto& v : voices) {
+                    if (!v.is_active) {
+                        target = &v;
+                        break;
+                    }
+                }
+            }
+            if (!target) {
+                for (auto& v : voices) {
+                    if (!v.isKeyHeld()) {
+                        target = &v;
+                        break;
+                    }
+                }
+            }
+            if (!target) {
+                target = &voices[0];
+                for (auto& v : voices) {
+                    if (v.getReleaseLevel() < target->getReleaseLevel()) target = &v;
+                }
             }
         }
 

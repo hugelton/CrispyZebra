@@ -10,7 +10,7 @@
 static CrispyZebra::Engine<8>* g_engine = nullptr;
 static std::vector<int16_t>* g_audio_buffer = nullptr;
 static const int16_t* g_sin_lut = nullptr;
-static uint32_t g_sample_rate = 44100;
+static uint32_t g_sample_rate = CrispyZebra::DEFAULT_SAMPLE_RATE;
 
 extern "C" {
 
@@ -301,6 +301,21 @@ void set_dca_key_follow(uint8_t amount) {
     }
 }
 
+EMSCRIPTEN_KEEPALIVE
+void set_dca_curve_mode(uint8_t mode) {
+    if (g_engine) {
+        g_engine->setDcaCurveMode(static_cast<CrispyZebra::DcaCurveMode>(mode));
+    }
+}
+
+EMSCRIPTEN_KEEPALIVE
+uint8_t get_max_voice_count() {
+    if (g_engine) {
+        return g_engine->getMaxVoiceCount();
+    }
+    return 0;
+}
+
 // Wave parameters (Line 1)
 EMSCRIPTEN_KEEPALIVE
 void set_line1_wave1(uint8_t wave) {
@@ -504,6 +519,13 @@ EMSCRIPTEN_KEEPALIVE
 uint16_t debug_dca_level_stage(int stage) {
     if (!g_engine) return 0;
     return g_engine->getDcaLevelStage(stage);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void set_mono_mode(bool enabled) {
+    if (g_engine) {
+        g_engine->setMonoMode(enabled);
+    }
 }
 
 }
