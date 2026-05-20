@@ -1326,6 +1326,146 @@ function loadPreset(index) {
         });
 }
 
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomChance(probability = 0.5) {
+    return Math.random() < probability;
+}
+
+function randomEgJson(type) {
+    const endPoint = randomInt(type === 'dca' ? 3 : 2, 8);
+    const sustainPoint = randomInt(1, endPoint);
+    const eg = [];
+
+    for (let i = 0; i < 8; i += 1) {
+        const beforeEnd = i < endPoint;
+        const isReleaseStage = endPoint < 8 && i === endPoint;
+        let level = beforeEnd ? randomInt(type === 'dca' ? 35 : 0, 99) : 0;
+
+        if (type === 'dca' && i === 0) level = randomInt(65, 99);
+        if (type === 'dco') level = beforeEnd ? randomInt(25, 99) : 0;
+        if (isReleaseStage) level = 0;
+
+        eg.push({
+            rate: beforeEnd || isReleaseStage ? randomInt(18, 99) : randomInt(45, 75),
+            level,
+            sustain: i === sustainPoint - 1
+        });
+    }
+
+    return { eg, endPoint, sustainPoint };
+}
+
+function randomLineJson(suffix) {
+    const dco = randomEgJson('dco');
+    const dcw = randomEgJson('dcw');
+    const dca = randomEgJson('dca');
+    const line = {
+        wave1: waveformIndexToName(randomInt(0, waveforms.length - 1)),
+        wave2: waveformIndexToName(randomInt(0, waveforms.length - 1)),
+        dcaKeyFollow: randomInt(0, 99),
+        dcwKeyFollow: randomInt(0, 99),
+        dcaEndPoint: dca.endPoint,
+        dcaEG: dca.eg,
+        dcaSustainPoint: dca.sustainPoint - 1,
+        dcwEndPoint: dcw.endPoint,
+        dcwEG: dcw.eg,
+        dcwSustainPoint: dcw.sustainPoint - 1,
+        dcoEndPoint: dco.endPoint,
+        dcoEG: dco.eg,
+        dcoSustainPoint: dco.sustainPoint - 1
+    };
+
+    if (suffix === '1') {
+        line.ringModulation = randomChance(0.18);
+        line.noiseModulation = randomChance(0.14);
+    }
+
+    return line;
+}
+
+function buildRandomPresetJson() {
+    const id = String(randomInt(0, 999)).padStart(3, '0');
+    return {
+        format: 'CrispyZebra',
+        version: '1.0',
+        bank: 'Random',
+        category: 'Generated',
+        presetName: `Random ${id}`,
+        global: {
+            lineSelect: {
+                mode: randomInt(0, 2),
+                octave: randomInt(0, 2)
+            },
+            master: {
+                volume: randomInt(58, 90),
+                octave: randomInt(0, 2),
+                pan: randomInt(35, 65),
+                drive: randomInt(0, 45),
+                noteSemitone: randomInt(0, 11),
+                fineTuning: randomInt(20, 40),
+                portamentoEnabled: randomChance(0.12),
+                portamentoTime: randomInt(0, 45),
+                pitchBendUp: randomInt(0, 12),
+                pitchBendDown: randomInt(0, 12)
+            },
+            detuneNegative: randomChance(),
+            detuneSign: randomChance() ? -1 : 1,
+            detune: {
+                fine: randomInt(0, 60),
+                note: randomInt(0, 11),
+                octave: randomInt(0, 2)
+            },
+            vibratoWaveform: vibratoIndexToName(randomInt(0, vibratoForms.length - 1)),
+            vibratoDelay: randomInt(0, 80),
+            vibratoRate: randomInt(0, 99),
+            vibratoDepth: randomInt(0, 70)
+        },
+        line1: randomLineJson('1'),
+        line2: randomLineJson('2')
+    };
+}
+
+async function randomizePreset() {
+    activeNotes.clear();
+    kbNotes.clear();
+    midiHeldNotes.clear();
+
+    const applyRandom = () => {
+        const preset = buildRandomPresetJson();
+        applyPreset(preset, 'RND', 'random');
+    };
+
+    if (!workletNode) {
+        applyRandom();
+        fullSync();
+        return;
+    }
+
+    const requestId = ++presetEngineResetRequest;
+    await new Promise((resolve) => {
+        const timer = setTimeout(() => {
+            pendingPresetEngineResets.delete(requestId);
+            resolve();
+        }, 1000);
+
+        pendingPresetEngineResets.set(requestId, {
+            resolve: () => {
+                clearTimeout(timer);
+                resolve();
+            }
+        });
+
+        workletNode.port.postMessage({ type: 'reset', requestId });
+    });
+
+    if (requestId !== presetEngineResetRequest) return;
+    applyRandom();
+    fullSync();
+}
+
 function applyPreset(preset, index, kind = 'factory', userId = null) {
     const g = preset.global;
     const l1 = preset.line1;
@@ -1789,6 +1929,11 @@ function initPresetButtons() {
     const saveBtn = document.querySelector('.preset-save');
     if (saveBtn) {
         saveBtn.addEventListener('click', downloadCurrentPreset);
+    }
+
+    const randomizeBtn = document.querySelector('.preset-randomize');
+    if (randomizeBtn) {
+        randomizeBtn.addEventListener('click', randomizePreset);
     }
 }
 
