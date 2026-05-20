@@ -4,7 +4,8 @@
 **CrispyZebra** is a lightweight, high-performance C++ synthesizer core engine designed to replicate the Phase Distortion (PD) synthesis of the 1980s CZ-series synthesizers. 
 
 ## Live Demo
-[https://kurogedelic.github.io/CrispyZebra/wasm](https://kurogedelic.github.io/CrispyZebra/wasm)
+[https://hugelton.github.io/CrispyZebra/wasm](https://hugelton.github.io/CrispyZebra/wasm)
+
 The interactive WebAssembly (WASM) implementation with a full GUI is available.
 
 
